@@ -629,7 +629,7 @@ const TASKS = {
     { id:'f7',  name:'Redescendre les chaises au sol', duration:'2 min', sec:120 },
     // Ligne de vente
     { id:'f11', name:'Vider la ligne de vente et nettoyer toutes les surfaces', duration:'8 min', sec:480 },
-    { id:'f14', name:'Nettoyer la surface extérieure du toaster', duration:'3 min', sec:180 },
+    { id:'f14', name:'Nettoyer le toaster (extérieur/intérieur)', duration:'3 min', sec:180 },
     { id:'f15', name:'Finir avec le sol de la ligne de vente', duration:'5 min', sec:300 },
     { id:'f19', name:"Nettoyer la porte d'entrée vitrée", duration:'3 min', sec:180 },
     // Caisse
@@ -867,9 +867,26 @@ function speakCurrent() {
   if (!('speechSynthesis' in window)) return;
   var all = state.avant.concat(state.fermeture);
   var active = all.find(function(t){ return t.status==='active'; });
-  var text = active
-    ? 'Prochaine étape : ' + active.name + '. Durée estimée : ' + active.duration + '.'
-    : "Bravo ! Toutes les tâches sont complétées. Bonne soirée à toute l'équipe !";
+  var doneCount = all.filter(function(t){ return t.status==='done'; }).length;
+  var total = all.length;
+  var text;
+
+  if (active) {
+    var encouragements = [
+      'Bien joué ! ',
+      'Parfait ! ',
+      'Étape validée ! ',
+      ''
+    ];
+    var enc = encouragements[doneCount % encouragements.length];
+    text = enc + 'Prochaine étape : ' + active.name + '. Durée estimée : ' + active.duration + '.';
+  } else {
+    var n = new Date();
+    var doneTime = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+    var elapsedMs  = sessionStartTime ? (n.getTime() - sessionStartTime) : 0;
+    var elapsedMin = Math.round(elapsedMs / 60000);
+    text = "Bravo ! Les " + total + " tâches sont terminées en " + elapsedMin + " minutes. Fermeture validée à " + doneTime + ". Bonne soirée à toute l'équipe !";
+  }
   speak(text);
 }
 
